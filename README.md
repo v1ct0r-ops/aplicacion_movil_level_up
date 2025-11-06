@@ -166,7 +166,7 @@ El proyecto cumple al 100% con los criterios de evaluación:
 
 ## Autor
 
-**Richard Moreano**
+**Richard Moreano**,
 **Victor Garces**
 
 

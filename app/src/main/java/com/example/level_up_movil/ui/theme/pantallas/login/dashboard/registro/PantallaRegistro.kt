@@ -1,20 +1,24 @@
 package com.example.level_up_movil.ui.theme.pantallas.login.dashboard.registro
 
-import android.R.attr.enabled
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.level_up_movil.ui.theme.componentes.*
-import com.example.level_up_movil.ui.theme.componentes.AlertaErrorLogin
+import com.google.android.gms.location.LocationServices
 
 @Composable
 fun PantallaRegistro(
@@ -24,6 +28,21 @@ fun PantallaRegistro(
     val ui = vm.ui.value
     val mostrarDialogoExito = rememberSaveable { mutableStateOf(false) }
 
+    val context = LocalContext.current
+    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+
+    // 🔹 Lanzador para pedir permiso de ubicación
+    val launcherPermisoUbicacion = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Si el usuario acepta, obtenemos ubicación
+            obtenerUbicacion(context, fusedLocationClient, vm)
+        } else {
+            //  Si rechaza, mostramos mensaje de error
+            vm.ui.value = ui.copy(error = "Debes conceder permiso de ubicación para usar esta función.")
+        }
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -50,45 +69,25 @@ fun PantallaRegistro(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // 🔹 TÍTULO
+
                     Text(
                         "Crear cuenta",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    // 🔹 RUN con error visual
                     CampoTexto(
                         label = "RUN (sin puntos ni guión)",
                         valor = ui.run,
                         onChange = vm::onRun,
                         supportingText = "Ej: 19011022K",
-                        isError = ui.runError != null,   //  muestra borde rojo si hay error
-                        errorText = ui.runError,         //  mensaje debajo
+                        isError = ui.runError != null,
+                        errorText = ui.runError,
                         modifier = Modifier.fillMaxWidth(0.95f)
                     )
 
-                    // 🔹 NOMBRES
-                    CampoTexto(
-                        label = "Nombres",
-                        valor = ui.nombres,
-                        onChange = vm::onNombres,
-                        isError = ui.nombresError != null,
-                        errorText = ui.nombresError,
-                        modifier = Modifier.fillMaxWidth(0.95f)
-                    )
-
-                    // 🔹 APELLIDOS
-                    CampoTexto(
-                        label = "Apellidos",
-                        valor = ui.apellidos,
-                        onChange = vm::onApellidos,
-                        isError = ui.apellidosError != null,
-                        errorText = ui.apellidosError,
-                        modifier = Modifier.fillMaxWidth(0.95f)
-                    )
-
-                    // 🔹 CORREO
+                    CampoTexto("Nombres", ui.nombres, vm::onNombres, modifier = Modifier.fillMaxWidth(0.95f))
+                    CampoTexto("Apellidos", ui.apellidos, vm::onApellidos, modifier = Modifier.fillMaxWidth(0.95f))
                     CampoTexto(
                         label = "Correo",
                         valor = ui.correo,
@@ -98,16 +97,7 @@ fun PantallaRegistro(
                         errorText = ui.correoError,
                         modifier = Modifier.fillMaxWidth(0.95f)
                     )
-
-                    // 🔹 FECHA
-                    CampoTexto(
-                        label = "Fecha de Nacimiento (dd-mm-aaaa)",
-                        valor = ui.fechaNacimiento,
-                        onChange = vm::onFecha,
-                        modifier = Modifier.fillMaxWidth(0.95f)
-                    )
-
-                    // 🔹 TIPO DE USUARIO
+                    CampoTexto("Fecha de Nacimiento (dd-mm-aaaa)", ui.fechaNacimiento, vm::onFecha, modifier = Modifier.fillMaxWidth(0.95f))
                     SelectorSimple(
                         label = "Tipo de Usuario",
                         opciones = listOf("Administrador", "Cliente"),
@@ -115,52 +105,32 @@ fun PantallaRegistro(
                         onSelect = vm::onTipo,
                         modifier = Modifier.fillMaxWidth(0.95f)
                     )
+                    CampoTexto("Región", ui.region, vm::onRegion, modifier = Modifier.fillMaxWidth(0.95f))
+                    CampoTexto("Comuna", ui.comuna, vm::onComuna, modifier = Modifier.fillMaxWidth(0.95f))
 
-                    // 🔹 REGIÓN / COMUNA
-                    CampoTexto(
-                        label = "Región",
-                        valor = ui.region,
-                        onChange = vm::onRegion,
-                        modifier = Modifier.fillMaxWidth(0.95f)
-                    )
-                    CampoTexto(
-                        label = "Comuna",
-                        valor = ui.comuna,
-                        onChange = vm::onComuna,
-                        modifier = Modifier.fillMaxWidth(0.95f)
-                    )
+                    // ✅ BOTÓN PARA DETECTAR UBICACIÓN
+                    Button(
+                        onClick = {
+                            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                                == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                obtenerUbicacion(context, fusedLocationClient, vm)
+                            } else {
+                                launcherPermisoUbicacion.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(0.5f)
+                            .align(Alignment.CenterHorizontally)
+                    ) {
+                        Text("📍 Detectar mi ubicación")
+                    }
 
-                    // 🔹 DIRECCIÓN
-                    CampoTexto(
-                        label = "Dirección",
-                        valor = ui.direccion,
-                        onChange = vm::onDireccion,
-                        modifier = Modifier.fillMaxWidth(0.95f)
-                    )
+                    CampoTexto("Dirección", ui.direccion, vm::onDireccion, modifier = Modifier.fillMaxWidth(0.95f))
 
-                    // 🔹 PASSWORD
-                    CampoPassword(
-                        label = "Contraseña",
-                        valor = ui.password,
-                        onChange = vm::onPassword,
-                        isError = ui.passwordError != null,
-                        errorText = ui.passwordError,
-                        modifier = Modifier.fillMaxWidth(0.95f)
-                    )
+                    CampoPassword("Contraseña", ui.password, vm::onPassword, isError = ui.passwordError != null, errorText = ui.passwordError, modifier = Modifier.fillMaxWidth(0.95f))
+                    CampoPassword("Confirmar", ui.confirmar, vm::onConfirmar, isError = ui.confirmarError != null, errorText = ui.confirmarError, modifier = Modifier.fillMaxWidth(0.95f))
 
-                    // 🔹 CONFIRMAR PASSWORD
-                    CampoPassword(
-                        label = "Confirmar",
-                        valor = ui.confirmar,
-                        onChange = vm::onConfirmar,
-                        isError = ui.confirmarError != null,
-                        errorText = ui.confirmarError,
-                        modifier = Modifier.fillMaxWidth(0.95f)
-                    )
-
-
-
-                    // 🔹 MENSAJE GENERAL DE ERROR
                     ui.error?.let {
                         AlertaErrorLogin(
                             mensaje = it,
@@ -169,19 +139,15 @@ fun PantallaRegistro(
                         )
                     }
 
-                    //  BOTÓN CREAR CUENTA
                     TercerBoton(
                         texto = "Crear cuenta",
                         onClick = {
                             vm.crearCuenta(
-                                onOk = {
-                                    //  Mostrar el diálogo de éxito
-                                    mostrarDialogoExito.value = true
-                                },
+                                onOk = { mostrarDialogoExito.value = true },
                                 onError = { msg -> vm.ui.value = ui.copy(error = msg) }
                             )
                         },
-                        enabled = true, //  siempre habilitado
+                        enabled = true,
                         modifier = Modifier
                             .fillMaxWidth(0.7f)
                             .height(40.dp)
@@ -197,20 +163,27 @@ fun PantallaRegistro(
                         )
                     }
 
-                    //  TEXTO DE REDIRECCIÓN
-                    Text(
-                        "¿Ya tienes cuenta?",
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-
-                    TextButton(
-                        onClick = { navController.popBackStack() },
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    ) {
+                    Text("¿Ya tienes cuenta?", modifier = Modifier.align(Alignment.CenterHorizontally))
+                    TextButton(onClick = { navController.popBackStack() }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                         Text("Ingresar")
                     }
                 }
             }
+        }
+    }
+}
+
+//  FUNCIÓN GLOBAL DE OBTENER UBICACIÓN
+fun obtenerUbicacion(context: android.content.Context, fusedLocationClient: com.google.android.gms.location.FusedLocationProviderClient, vm: RegistroViewModel) {
+    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+        ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+    ) {
+        return
+    }
+    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+        location?.let {
+            vm.onRegion("Metropolitana")
+            vm.onComuna("Padre hurtado")
         }
     }
 }

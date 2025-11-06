@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Permisos necesarios para que mi app funcione correctamente -->
+    <!-- Permiso para usar GPS con precisión alta (para detectar ubicación exacta) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Permiso para ubicación aproximada (como respaldo si no tiene GPS) -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Permiso para hacer vibrar el teléfono (feedback cuando se registra) -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Permiso para conectarse a internet (si en el futuro conecto a APIs) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    
     <application
         android:allowBackup="true"
         android:label="LevelUp Admin"

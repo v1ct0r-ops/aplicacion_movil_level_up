@@ -1,26 +1,37 @@
 package com.example.levelupgamerpanel_app.data.store
 
+// Importo herramientas de Android para guardar datos en el dispositivo
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+
+// Importo mis modelos de datos (como las "estructuras" de mi información)
 import com.example.levelupgamerpanel_app.data.models.ItemPedido
 import com.example.levelupgamerpanel_app.data.models.Pedido
 import com.example.levelupgamerpanel_app.data.models.Producto
 import com.example.levelupgamerpanel_app.data.models.Usuario
+
+// Importo herramientas para trabajar con datos que cambian en tiempo real
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+
+// Importo herramientas para convertir objetos a JSON y viceversa
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
+// Creo mi "base de datos" local usando DataStore (es como un archivo que persiste)
 private val Context.dataStore by preferencesDataStore("levelup_admin")
 
+// Esta clase es como mi "base de datos" local de la aplicación
 class AppStore(private val context: Context) {
-    private val K_USUARIOS = stringPreferencesKey("usuarios")
-    private val K_PRODUCTOS = stringPreferencesKey("productos")
-    private val K_PEDIDOS = stringPreferencesKey("pedidos")
-    private val K_SESION = stringPreferencesKey("sesion")
+    
+    // Defino las "llaves" para guardar diferentes tipos de datos (como nombres de archivos)
+    private val K_USUARIOS = stringPreferencesKey("usuarios")    // Para la lista de usuarios
+    private val K_PRODUCTOS = stringPreferencesKey("productos")  // Para el catálogo de productos
+    private val K_PEDIDOS = stringPreferencesKey("pedidos")      // Para el historial de pedidos
+    private val K_SESION = stringPreferencesKey("sesion")        // Para saber quién está logueado
 
     private val json = Json { ignoreUnknownKeys = true }
 

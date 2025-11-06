@@ -216,6 +216,7 @@ fun PantallaRegistro(
                             )
                         },
                         enabled = true,
+                        isLoading = vm.isCreating.value,
                         modifier = Modifier
                             .fillMaxWidth(0.7f)
                             .height(40.dp)
@@ -257,7 +258,7 @@ fun obtenerUbicacion(
     }
     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
         location?.let {
-            // Aquí puedes mapear reverse geocoding si quieres, por ahora dejamos valores de ejemplo
+            // Por ahora uso valores de ejemplo, más adelante implementaré reverse geocoding
             vm.onRegion("Metropolitana")
             vm.onComuna("Padre hurtado")
         }
